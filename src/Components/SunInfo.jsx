@@ -17,7 +17,6 @@ function SunInfo() {
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
-
           axios.get(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`)
             .then(response => {
               const data = response.data.results;
@@ -30,7 +29,6 @@ function SunInfo() {
                 sunset,
                 dayLength
               });
-
 
               axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`)
                 .then(locationResponse => {
@@ -58,14 +56,14 @@ function SunInfo() {
   }, []);
 
   return (
-    <div className="text-center dark:text-white mt-6">
+    <div className="text-center dark:text-white p-4">
       {locationError ? (
         <p className="text-red-500">{locationError}</p>
       ) : (
-        <p className="text-lg">
+        <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl">
           Sun: ↑ {sunInfo.sunrise} ↓ {sunInfo.sunset} ({sunInfo.dayLength}) <br />
-          {locationName} <br />
-          <a href="https://bibashjaprel.com.np/" target="_blank" className="text-blue-500 ">@bibash.japrel</a>
+          <span className="text-base sm:text-lg md:text-xl lg:text-2xl">{locationName}</span> <br />
+          <a href="https://bibashjaprel.com.np/" target="_blank" className="text-blue-500 text-sm sm:text-base md:text-lg lg:text-xl"> @bibash.japrel</a>
         </p>
       )}
     </div>
