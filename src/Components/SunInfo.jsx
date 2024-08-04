@@ -7,36 +7,67 @@ function SunInfo() {
     sunset: '',
     dayLength: ''
   });
+  const [locationName, setLocationName] = useState('');
+  const [locationError, setLocationError] = useState('');
 
   useEffect(() => {
-    const latitude = 0;
-    const longitude =0;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
 
-    axios.get(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`)
-      .then(response => {
-        const data = response.data.results;
-        const sunrise = new Date(data.sunrise).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const sunset = new Date(data.sunset).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const dayLength = `${Math.floor(data.day_length / 3600)}h ${Math.floor((data.day_length % 3600) / 60)}m`;
 
-        setSunInfo({
-          sunrise,
-          sunset,
-          dayLength
-        });
-      })
-      .catch(error => {
-        console.error("There was an error fetching the sun data!", error);
-      });
+          axios.get(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`)
+            .then(response => {
+              const data = response.data.results;
+              const sunrise = new Date(data.sunrise).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const sunset = new Date(data.sunset).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              const dayLength = `${Math.floor(data.day_length / 3600)}h ${Math.floor((data.day_length % 3600) / 60)}m`;
+
+              setSunInfo({
+                sunrise,
+                sunset,
+                dayLength
+              });
+
+
+              axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`)
+                .then(locationResponse => {
+                  const locationData = locationResponse.data;
+                  const locationName = locationData.address.city || locationData.address.town || locationData.address.village || locationData.address.state || locationData.address.country;
+                  setLocationName(locationName);
+                })
+                .catch(error => {
+                  console.error("There was an error fetching the location name!", error);
+                });
+
+            })
+            .catch(error => {
+              console.error("There was an error fetching the sun data!", error);
+            });
+        },
+        error => {
+          setLocationError('Unable to retrieve location.');
+          console.error("Geolocation error:", error);
+        }
+      );
+    } else {
+      setLocationError('Geolocation is not supported by this browser.');
+    }
   }, []);
 
   return (
     <div className="text-center dark:text-white mt-6">
-      <p className="text-lg">
-        Sun: ↑ {sunInfo.sunrise} ↓ {sunInfo.sunset} ({sunInfo.dayLength}) - 
-        {/* <a href="https://www.timeanddate.com/sun/nepal/kathmandu" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">More info</a> -  */}
-        <a href="https://bibashjaprel.com.np/" target="_blank" className="text-blue-500 ">@bibash.japrel</a>
-      </p>
+      {locationError ? (
+        <p className="text-red-500">{locationError}</p>
+      ) : (
+        <p className="text-lg">
+          Sun: ↑ {sunInfo.sunrise} ↓ {sunInfo.sunset} ({sunInfo.dayLength}) <br />
+          {locationName} <br />
+          <a href="https://bibashjaprel.com.np/" target="_blank" className="text-blue-500 ">@bibash.japrel</a>
+        </p>
+      )}
     </div>
   );
 }
